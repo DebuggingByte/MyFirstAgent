@@ -13,25 +13,34 @@ from create_llm_message import create_llm_msg
 
 
 class State(TypedDict):
+    #Making sure lnode is optional because it is not always needed
     lnode: Optional[str]
+    #Making sure category is optional because it is not always needed
     category: Optional[str]
+    #Making sure sessionHistory is optional because it is not always needed
     sessionHistory: List[BaseMessage]
+    #Making sure user_input is a string
     user_input: str
+    #Making sure responseToUser is optional because it is not always needed
     responseToUser: Optional[str]
 
 
 class Category(BaseModel):
+    #Making sure category is a string
     category: str
 
 
 class TeacherAgent():
+    #Adding init function to initialize the model
     def __init__(self, api_key):
+        #setting the model to the model specified in the secrets
         self.model = ChatOpenAI(model=st.secrets["model"], api_key=api_key)
 
         self.math_agent_class = MathAgent(self.model)
         self.reading_agent_class = ReadingAgent(self.model)
         self.writing_agent_class = WritingAgent(self.model)
 
+        #Creating the workflow
         workflow = StateGraph(State)
 
         workflow.add_node("start", self.initial_classifier)
@@ -55,11 +64,13 @@ class TeacherAgent():
 
         self.workflow = workflow.compile()
 
+    #Defining the route_to_agent function
     def route_to_agent(self, state: State) -> str:
         """Route to the appropriate agent based on category."""
         category = state.get("category", "teacher")
         return category if category else "teacher"
 
+    #Defining the initial_classifier function
     def initial_classifier(self, state: State) -> State:
         """Classify the user input to determine which agent should handle it."""
         classifier_prompt = """
@@ -70,10 +81,13 @@ class TeacherAgent():
         
         Respond with only the category name (math, reading, or writing).
         """
+        #Creating the message
         msg = create_llm_msg(classifier_prompt, state.get("sessionHistory", []))
+        #Invoking the model
         llm_response = self.model.invoke(msg)
+        #Getting the category
         category = str(llm_response.content).strip().lower()
-        
+        #Returning the state
         return {
             "category": category,
             "lnode": "initial_classifier",
