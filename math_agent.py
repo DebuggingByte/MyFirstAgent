@@ -16,6 +16,9 @@ class MathAgent:
         5. If the user asks you to solve a problem, you should first think about the problem and then help them solve it.
         6. If the user asks you to explain a concept, you should first think about the concept and then help them understand it.
         7. If the user asks you to do a calculation, you should first think about the calculation and then help them do it.
+        8. If the user asks for a formula, you should first think about the formula and then help them use it.
+        9. If the user asks for help with a problem, you should first think about the problem and then help them solve it.
+        10. At all times, you should be friendly and helpful, and never make the user feel stupid or dumb.
        
         """
         self.sessionHistory = []
