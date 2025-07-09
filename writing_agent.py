@@ -19,6 +19,8 @@ class WritingAgent:
 
         return {
             "lnode": "writing_agent",
-            "responseToUser": full_response,
-            "category": "writing"
+            "responseToUser": full_response.content,
+            "category": "writing",
+            "sessionHistory": self.sessionHistory,
+            "user_input": user_input
         }

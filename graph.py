@@ -17,7 +17,7 @@ class State(TypedDict):
     lnode: Optional[str]
     #Making sure category is optional because it is not always needed
     category: Optional[str]
-    #Making sure sessionHistory is optional because it is not always needed
+    #Making sure sessionHistory is a list of BaseMessage because it is a list of messages
     sessionHistory: List[BaseMessage]
     #Making sure user_input is a string
     user_input: str
@@ -55,7 +55,7 @@ class TeacherAgent():
             {
                 "math": "math",
                 "reading": "reading", 
-                "writing": "writing",
+                "writing": "writing"
             }
         )
         workflow.add_edge("math", END)

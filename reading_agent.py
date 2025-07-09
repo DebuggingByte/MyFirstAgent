@@ -19,6 +19,8 @@ class ReadingAgent:
 
         return {
             "lnode": "reading_agent",
-            "responseToUser": full_response,
-            "category": "reading"
+            "responseToUser": full_response.content,
+            "category": "reading",
+            "sessionHistory": self.sessionHistory,
+            "user_input": user_input
         }

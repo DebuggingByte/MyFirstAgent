@@ -34,6 +34,8 @@ class MathAgent:
 
         return {
             "lnode": "math_agent",
-            "responseToUser": full_response,
-            "category": "math"
+            "responseToUser": full_response.content,
+            "category": "math",
+            "sessionHistory": self.sessionHistory,
+            "user_input": user_input
         }
