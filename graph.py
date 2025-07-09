@@ -44,9 +44,9 @@ class TeacherAgent():
         workflow = StateGraph(State)
 
         workflow.add_node("start", self.initial_classifier)
-        workflow.add_node("math", lambda state: self.math_agent_class.math_agent(state["user_input"]))
-        workflow.add_node("reading", lambda state: self.reading_agent_class.reading_agent(state["user_input"]))
-        workflow.add_node("writing", lambda state: self.writing_agent_class.writing_agent(state["user_input"]))
+        workflow.add_node("math", lambda state: self.math_agent_class.math_agent(state["user_input"], state.get("sessionHistory", [])))
+        workflow.add_node("reading", lambda state: self.reading_agent_class.reading_agent(state["user_input"], state.get("sessionHistory", [])))
+        workflow.add_node("writing", lambda state: self.writing_agent_class.writing_agent(state["user_input"], state.get("sessionHistory", [])))
 
         workflow.add_edge(START, "start")
         workflow.add_conditional_edges(

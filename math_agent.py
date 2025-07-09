@@ -29,13 +29,17 @@ class MathAgent:
 
         return llm_response
 
-    def math_agent(self, user_input: str):
-        full_response = self.get_response(user_input)
+    def math_agent(self, user_input: str, session_history=None):
+        if session_history is None:
+            session_history = []
+        
+        msg = create_llm_msg(self.system_prompt, session_history)
+        llm_response = self.model.invoke(msg)
 
         return {
             "lnode": "math_agent",
-            "responseToUser": full_response.content,
+            "responseToUser": llm_response.content,
             "category": "math",
-            "sessionHistory": self.sessionHistory,
+            "sessionHistory": session_history,
             "user_input": user_input
         }

@@ -14,13 +14,17 @@ class WritingAgent:
 
         return llm_response
 
-    def writing_agent(self, user_input: str):
-        full_response = self.get_response(user_input)
+    def writing_agent(self, user_input: str, session_history=None):
+        if session_history is None:
+            session_history = []
+        
+        msg = create_llm_msg(self.system_prompt, session_history)
+        llm_response = self.model.invoke(msg)
 
         return {
             "lnode": "writing_agent",
-            "responseToUser": full_response.content,
+            "responseToUser": llm_response.content,
             "category": "writing",
-            "sessionHistory": self.sessionHistory,
+            "sessionHistory": session_history,
             "user_input": user_input
         }
