@@ -18,8 +18,16 @@ class ReadingAgent:
         if session_history is None:
             session_history = []
         
-        msg = create_llm_msg(self.system_prompt, session_history)
-        llm_response = self.model.invoke(msg)
+        # Create a message that includes the user's question
+        from langchain_core.messages import HumanMessage
+        
+        # Create messages with system prompt, session history, and current user input
+        messages = []
+        messages.append(SystemMessage(content=self.system_prompt))
+        messages.extend(session_history)
+        messages.append(HumanMessage(content=user_input))
+        
+        llm_response = self.model.invoke(messages)
 
         return {
             "lnode": "reading_agent",
