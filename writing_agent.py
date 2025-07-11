@@ -5,7 +5,13 @@ from create_llm_message import create_llm_msg
 class WritingAgent:
     def __init__(self, model):
         self.model = model
-        self.system_prompt = "You are a helpful assistant that can answer questions about writing."
+        self.system_prompt = """You are a helpful assistant that can answer questions about writing. Follow these steps when responding:
+
+1. First, understand the user's writing question or request
+2. Break down the writing concept into clear, sequential steps
+3. Provide step-by-step instructions to help the user
+4. Use numbered lists or bullet points for clarity
+5. Ensure each step builds upon the previous one"""
         self.sessionHistory = []
 
     def get_response(self, user_input: str):

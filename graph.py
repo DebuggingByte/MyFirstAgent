@@ -79,29 +79,60 @@ class TeacherAgent():
     #Defining the initial_classifier function
     def initial_classifier(self, state: State) -> State:
         """Classify the user input to determine which agent should handle it."""
-        classifier_prompt = """
-        You are a helpful assistant that can classify user input into one of the following categories:
-        - math: for mathematical questions, calculations, equations, numbers, geometry, algebra, etc.
-        - reading: for questions about reading comprehension, literature, books, stories, text analysis, etc.
-        - writing: for questions about writing, grammar, composition, essays, creative writing, etc.
-        - general: for any other questions that don't fit the above categories (science, history, sports, etc.)
         
-        Analyze the user input: "{user_input}"
+        # First, check if this is a short response that should continue the previous conversation
+        user_input = state["user_input"].lower().strip()
+        session_history = state.get("sessionHistory", [])
         
-        Respond with ONLY the category name (math, reading, writing, or general). Do not include any other text.
-        """
-        #Creating the message with user input included
-        formatted_prompt = classifier_prompt.format(user_input=state["user_input"])
-        msg = create_llm_msg(formatted_prompt, state.get("sessionHistory", []))
-        #Invoking the model
-        llm_response = self.model.invoke(msg)
-        #Getting the category
-        category = str(llm_response.content).strip().lower()
-        
-        # Validate and clean the category
-        if category not in ["math", "reading", "writing", "general"]:
-            # If the classifier didn't return a valid category, default to general
-            category = "general"
+        # If it's a short response and we have conversation history, try to determine context
+        if len(user_input) <= 10 and session_history:
+            # Look at the last assistant message to determine context
+            for msg in reversed(session_history):
+                if hasattr(msg, 'content') and msg.content:
+                    last_response = str(msg.content).lower()
+                    # Check if the last response was from a specific subject
+                    if any(keyword in last_response for keyword in ["math", "equation", "calculation", "solve", "problem", "fraction", "number", "algebra", "geometry"]):
+                        category = "math"
+                        break
+                    elif any(keyword in last_response for keyword in ["reading", "book", "story", "text", "comprehension", "literature", "analyze"]):
+                        category = "reading"
+                        break
+                    elif any(keyword in last_response for keyword in ["writing", "essay", "grammar", "composition", "write", "sentence"]):
+                        category = "writing"
+                        break
+                    else:
+                        category = "general"
+                        break
+            else:
+                category = "general"
+        else:
+            # Use the AI classifier for longer or standalone inputs
+            classifier_prompt = """
+            You are a helpful assistant that can classify user input into one of the following categories:
+            - math: for mathematical questions, calculations, equations, numbers, geometry, algebra, arithmetic, fractions, decimals, percentages, word problems, etc.
+            - reading: for questions about reading comprehension, literature, books, stories, text analysis, etc.
+            - writing: for questions about writing, grammar, composition, essays, creative writing, etc.
+            - general: for greetings, introductions, or questions that don't fit the above categories
+            
+            IMPORTANT: Consider the conversation context when classifying. If the user is asking a follow-up question about a previous topic, classify it accordingly.
+            For example, if the conversation was about writing and the user asks "Which one would you recommend?", classify it as "writing".
+            
+            Analyze the user input: "{user_input}"
+            
+            Respond with ONLY the category name (math, reading, writing, or general). Do not include any other text.
+            """
+            #Creating the message with user input included - Include session history for context
+            formatted_prompt = classifier_prompt.format(user_input=state["user_input"])
+            msg = create_llm_msg(formatted_prompt, session_history)  # Include session history for context
+            #Invoking the model
+            llm_response = self.model.invoke(msg)
+            #Getting the category
+            category = str(llm_response.content).strip().lower()
+            
+            # Validate and clean the category
+            if category not in ["math", "reading", "writing", "general"]:
+                # If the classifier didn't return a valid category, default to general
+                category = "general"
         
         #Returning the state with all original values preserved
         result_state = {
@@ -144,7 +175,16 @@ I specialize in three main subjects:
 
 Just ask me any question related to these subjects, and I'll help you learn step by step. What would you like to work on today?"""
         else:
-            response = "Sorry, but I can't answer that question. I'm specifically designed to help with math, reading, and writing questions. Please ask me something related to these subjects!"
+            response = """I'm sorry, but I can only help with questions related to math, reading, and writing. 
+
+Your question doesn't seem to fit these subjects. I'm designed to be a focused educational assistant for these three areas only.
+
+Please ask me something about:
+• **Math**: equations, calculations, geometry, algebra, word problems
+• **Reading**: books, stories, text analysis, comprehension
+• **Writing**: essays, grammar, composition, creative writing
+
+What would you like to learn about?"""
         
         return {
             "lnode": "general_agent",
